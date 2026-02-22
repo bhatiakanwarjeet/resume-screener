@@ -5,61 +5,95 @@ from services.llm import generate_text
 
 nlp = spacy.load("en_core_web_sm")
 
+CURRENT_YEAR = datetime.now().year
+
 COMMON_HEADERS = {
     "resume", "curriculum vitae", "life philosophy",
     "personal details", "objective", "summary",
-    "experience", "education", "skills",
-    "profile", "contact", "about me"
+    "experience", "education", "skills", "profile",
+    "contact", "about me", "work experience",
+    "professional experience", "career objective",
+    "technical skills", "core competencies",
+    "certifications", "projects", "references",
+    "bachelor of science", "master of science",
 }
 
-CURRENT_YEAR = datetime.now().year
+TITLE_WORDS = {
+    "engineer", "developer", "manager", "analyst", "designer",
+    "consultant", "specialist", "director", "lead", "architect",
+    "intern", "associate", "senior", "junior", "fresher",
+    "software", "data", "product", "marketing", "sales",
+    "university", "college", "institute", "school", "bachelor",
+    "master", "doctor", "phd", "mba", "bsc", "msc",
+    "street", "avenue", "road", "city", "state", "usa",
+    "india", "new", "york", "san", "francisco", "remote",
+}
 
-
-# ---------------------------------------------------------
-# NAME EXTRACTION
-# ---------------------------------------------------------
 
 def is_valid_name(name):
     if not name:
         return False
     name = name.strip()
-    if len(name.split()) < 2 or len(name.split()) > 4:
+    words = name.split()
+    if len(words) < 2 or len(words) > 4:
         return False
     if any(char.isdigit() for char in name):
         return False
+    if re.search(r"[^a-zA-Z\s'\-]", name):
+        return False
+    for word in words:
+        if not word[0].isupper():
+            return False
+    if any(w.lower() in TITLE_WORDS for w in words):
+        return False
     if name.lower() in COMMON_HEADERS:
+        return False
+    if len(name) > 40:
         return False
     return True
 
 
-def extract_name(text, filename=None):
-
-    # 1. NER
-    doc = nlp(text[:3000])
-    for ent in doc.ents:
-        if ent.label_ == "PERSON":
-            if is_valid_name(ent.text):
-                return ent.text
-
-    # 2. Heuristic
-    lines = [l.strip() for l in text.split("\n") if l.strip()]
-    for line in lines[:10]:
-        if is_valid_name(line):
-            return line
-
-    # 3. Filename fallback
-    if filename:
-        clean = re.sub(r"[_\-0-9]", " ", filename)
-        clean = re.sub(r"\s+", " ", clean).strip()
-        if len(clean.split()) >= 2:
-            return clean.title()
-
+def extract_name_llm(text):
+    try:
+        prompt = (
+            "Extract the candidate's full name from the top of this resume. "
+            "Return ONLY the name, nothing else. "
+            "If you cannot find a name, return the word NULL.\n\n"
+            f"{text[:1500]}"
+        )
+        result, _ = generate_text(prompt)
+        result = result.strip().strip('"').strip("'")
+        if result and result.upper() != "NULL" and is_valid_name(result):
+            return result
+    except:
+        pass
     return None
 
 
-# ---------------------------------------------------------
-# EXPERIENCE EXTRACTION (HYBRID)
-# ---------------------------------------------------------
+def extract_name(text, filename=None):
+    doc = nlp(text[:2000])
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            candidate = ent.text.strip().title()
+            if is_valid_name(candidate):
+                return candidate
+
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    for line in lines[:6]:
+        if line.isupper():
+            line = line.title()
+        if is_valid_name(line):
+            return line
+
+    if filename:
+        name_part = re.sub(r"\.(pdf|docx|txt|doc)$", "", filename, flags=re.IGNORECASE)
+        clean = re.sub(r"[_\-\.]", " ", name_part)
+        clean = re.sub(r"\s+", " ", clean).strip().title()
+        if is_valid_name(clean):
+            return clean
+
+    return extract_name_llm(text)
+
 
 def extract_years_regex(text):
     matches = re.findall(r"(\d+)\+?\s+years?", text.lower())
@@ -71,10 +105,8 @@ def extract_years_regex(text):
 def extract_years_from_dates(text):
     years = re.findall(r"(19\d{2}|20\d{2})", text)
     years = [int(y) for y in years if 1970 < int(y) <= CURRENT_YEAR]
-
     if len(years) >= 2:
         return max(years) - min(years)
-
     return None
 
 
@@ -96,28 +128,17 @@ def extract_years_llm(text):
 
 
 def extract_years_experience(text):
-
-    # 1. Regex
     years = extract_years_regex(text)
     if years:
         return years
-
-    # 2. Date range calculation
     years = extract_years_from_dates(text)
     if years:
         return years
-
-    # 3. LLM fallback
     years = extract_years_llm(text)
     if years:
         return years
-
     return 0
 
-
-# ---------------------------------------------------------
-# SKILL EXTRACTION (LIGHTWEIGHT)
-# ---------------------------------------------------------
 
 SKILL_KEYWORDS = [
     "python", "sql", "java", "aws", "docker",
@@ -135,32 +156,18 @@ def extract_skills(text):
     return list(set(found))
 
 
-# ---------------------------------------------------------
-# PARSE RESUME
-# ---------------------------------------------------------
-
 def parse_resume(text, filename=None):
-
-    structured = {
+    return {
         "name": extract_name(text, filename),
         "years_experience": extract_years_experience(text),
         "skills": extract_skills(text),
         "summary": text[:1000]
     }
 
-    return structured
-
-
-# ---------------------------------------------------------
-# PARSE JD
-# ---------------------------------------------------------
 
 def parse_jd(text):
-
-    structured = {
+    return {
         "summary": text[:1500],
         "skills": extract_skills(text),
         "years_required": extract_years_regex(text) or 0
     }
-
-    return structured
