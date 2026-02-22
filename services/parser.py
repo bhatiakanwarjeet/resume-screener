@@ -27,6 +27,12 @@ TITLE_WORDS = {
     "master", "doctor", "phd", "mba", "bsc", "msc",
     "street", "avenue", "road", "city", "state", "usa",
     "india", "new", "york", "san", "francisco", "remote",
+    "framework", "server", "angular", "entity", "react",
+    "spring", "django", "docker", "linux", "windows",
+    "express", "flutter", "kotlin", "swift", "oracle",
+    "visual", "studio", "azure", "google", "amazon",
+    "cloud", "native", "mobile", "web", "api", "rest",
+    "agile", "scrum", "devops", "github", "gitlab",
 }
 
 
@@ -44,6 +50,8 @@ def is_valid_name(name):
     for word in words:
         if not word[0].isupper():
             return False
+        if re.search(r"[A-Z]{2,}", word):
+            return False
     if any(w.lower() in TITLE_WORDS for w in words):
         return False
     if name.lower() in COMMON_HEADERS:
@@ -56,14 +64,17 @@ def is_valid_name(name):
 def extract_name_llm(text):
     try:
         prompt = (
-            "Extract the candidate's full name from the top of this resume. "
-            "Return ONLY the name, nothing else. "
-            "If you cannot find a name, return the word NULL.\n\n"
+            "You are extracting a person's full name from a resume. "
+            "The name is typically at the very top of the document. "
+            "It may be a Western, Indian, Asian, or other non-English name. "
+            "Return ONLY the full name as it appears, nothing else — "
+            "no job titles, no skills, no location. "
+            "If you cannot confidently identify a name, return NULL.\n\n"
             f"{text[:1500]}"
         )
         result, _ = generate_text(prompt)
-        result = result.strip().strip('"').strip("'")
-        if result and result.upper() != "NULL" and is_valid_name(result):
+        result = result.strip().strip('"').strip("'").split("\n")[0]
+        if result and result.upper() != "NULL":
             return result
     except:
         pass
@@ -146,6 +157,7 @@ SKILL_KEYWORDS = [
     "machine learning", "deep learning",
     "project management", "react", "node"
 ]
+
 
 def extract_skills(text):
     text_lower = text.lower()
