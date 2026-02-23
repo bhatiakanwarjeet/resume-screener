@@ -2,8 +2,8 @@
 
 **AI-powered resume screening and job description optimization — go from a job brief to a ranked, explainable shortlist in minutes.**
 
- **Live Demo:** [resumescreenertanmay.streamlit.app](https://resumescreenertanmay.streamlit.app)
- **Source Code:** [github.com/tanmay1304/resume-screener](https://github.com/tanmay1304/resume-screener)
+ **Live Demo:** [resume-screener-tanmay.streamlit.app](https://resume-screener-tanmay.streamlit.app)
+ **Source Code:** [github.com/bhatiakanwarjeet/resume-screener](https://github.com/bhatiakanwarjeet/resume-screener)
 
 ---
 
