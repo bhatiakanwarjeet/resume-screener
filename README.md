@@ -2,7 +2,7 @@
 
 **AI-powered resume screening and job description optimization — go from a job brief to a ranked, explainable shortlist in minutes.**
 
- **Live Demo:** [resume-screener-tanmay.streamlit.app](https://resume-screener-tanmay.streamlit.app)
+ **Live Demo:** [resume-screener-tanmay.streamlit.app](https://resume-screener-tanmay.streamlit.app/)
  **Source Code:** [github.com/bhatiakanwarjeet/resume-screener](https://github.com/bhatiakanwarjeet/resume-screener)
 
 ---
@@ -20,7 +20,7 @@ It also includes a JD Generator and Optimizer: write a job description from scra
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/tanmay1304/resume-screener.git
+git clone https://github.com/bhatiakanwarjeet/resume-screener.git
 cd resume-screener
 pip install -r requirements.txt
 ```
@@ -95,11 +95,11 @@ This is the starting point. You need to load or generate a JD before screening r
 
 Fill in the four fields on the right panel and click **Generate JD**:
 
-| Field | Example                                             |
-|---|-----------------------------------------------------|
-| **Job Title** | Software Engineer                                   |
-| **Department** | Engineering                                         |
-| **Seniority** | Junior                                              |
+| Field | Example |
+|---|---|
+| **Job Title** | Software Engineer |
+| **Department** | Engineering |
+| **Seniority** | Mid |
 | **Key Requirements** | Python, REST APIs, AWS, 3+ years backend experience |
 
 The LLM generates a full JD (Responsibilities, Required Qualifications, Preferred Qualifications, Benefits, Equal Opportunity statement), then automatically improves it. Both versions are shown side-by-side for you to choose from.
@@ -248,7 +248,22 @@ We are an equal opportunity employer. We celebrate diversity and are committed t
 | Seniority | Mid |
 | Key Requirements | Python, SQL, AWS, Docker, REST APIs, 3+ years backend experience |
 
+### Resume Datasets
 
+Use any of the following public datasets to test with realistic resumes:
+
+- **Kaggle — Resume Dataset (2400+ resumes across 25 job categories):**
+  [kaggle.com/datasets/gauravduttakiit/resume-dataset](https://www.kaggle.com/datasets/gauravduttakiit/resume-dataset)
+
+- **Kaggle — Resume Screening Dataset:**
+  [kaggle.com/datasets/snehaanbhawal/resume-dataset](https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset)
+
+- **Hugging Face — Resume NER Dataset:**
+  [huggingface.co/datasets/resume-ner](https://huggingface.co/datasets/skills-ml/resume-ner)
+
+> Download a few resumes as `.txt` or `.pdf` files and upload them directly via the Resume Screening tab.
+
+---
 
 ## Dependencies
 
