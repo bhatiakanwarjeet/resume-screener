@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 import pandas as pd
 import io
@@ -32,6 +33,10 @@ if "notes" not in st.session_state:
     st.session_state.notes = {}
 if "jd_confirmed_banner" not in st.session_state:
     st.session_state.jd_confirmed_banner = False
+
+
+def safe_key(prefix, value):
+    return f"{prefix}_{re.sub(r'[^a-zA-Z0-9]', '_', str(value))}"
 
 
 def build_candidate_elements(candidate, score, resume, questions, notes, styles):
@@ -115,11 +120,11 @@ if tab_choice == "Job Description":
 
         with col1:
             st.markdown("### User JD")
-            st.text_area("", value=st.session_state.user_jd, height=400, disabled=True)
+            st.text_area("User JD Preview", value=st.session_state.user_jd, height=400, disabled=True, label_visibility="collapsed")
 
         with col2:
             st.markdown("### AI Improved JD")
-            st.text_area("", value=st.session_state.ai_jd, height=400, disabled=True)
+            st.text_area("AI JD Preview", value=st.session_state.ai_jd, height=400, disabled=True, label_visibility="collapsed")
 
         choice = st.radio("Select JD for screening:", ["User JD", "AI Improved JD"])
 
@@ -198,7 +203,6 @@ if tab_choice == "Resume Screening":
 
         df = pd.DataFrame(st.session_state.results)
 
-        # Re-apply weights to stored breakdowns (handles slider changes without re-running)
         df["Score"] = df.apply(
             lambda row:
             weights["Skills"]     * row["Breakdown"]["skill_score"] +
@@ -225,7 +229,6 @@ if tab_choice == "Resume Screening":
             disabled=True
         )
 
-        # CSV export
         csv_df = df_top.apply(lambda row: {
             "Candidate":        row["Candidate"],
             "Score":            round(row["Score"], 3),
@@ -289,13 +292,13 @@ if tab_choice == "Resume Screening":
 
                 st.markdown("### Recruiter Notes")
                 note = st.text_area(
-                    "",
+                    "Recruiter Notes",
                     value=st.session_state.notes.get(candidate, ""),
-                    key=f"note_{candidate}"
+                    key=safe_key("note", candidate),
+                    label_visibility="collapsed"
                 )
                 st.session_state.notes[candidate] = note
 
-                # Individual PDF
                 buffer = io.BytesIO()
                 doc = SimpleDocTemplate(buffer)
                 doc.build(build_candidate_elements(
@@ -308,7 +311,7 @@ if tab_choice == "Resume Screening":
                     buffer.getvalue(),
                     f"{candidate}_report.pdf",
                     mime="application/pdf",
-                    key=f"pdf_{candidate}"
+                    key=safe_key("pdf", candidate)
                 )
 
             full_elements += build_candidate_elements(
